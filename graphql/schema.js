@@ -4,7 +4,19 @@ const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLID, GraphQLBoole
 const Annonce = require('../models/annonces');
 const User = require('../models/user-models');
 
-
+const UserType = new GraphQLObjectType({
+  name: 'User',
+  fields: {
+    id: { type: GraphQLID },
+    nom: { type: GraphQLString },
+    prenom: { type: GraphQLString },
+    username: { type: GraphQLString },
+    googleId: { type: GraphQLString },
+    password: { type: GraphQLString },
+    email: { type: GraphQLString },
+    role: { type: GraphQLString },
+  },
+});
 
 
 
@@ -65,6 +77,20 @@ const RootQuery = new GraphQLObjectType({
         return Annonce.find();
       },
     },
+    getUser: {
+      type: UserType,
+      args: { id: { type: GraphQLID } },
+      resolve(parent, args) {
+        return User.findById(args.id);
+      },
+    },
+    getUsers: {
+      type: new GraphQLList(UserType),
+      resolve(parent, args) {
+        return User.find();
+      },
+    },
+  
  
   },
 });
@@ -72,14 +98,27 @@ const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
 
-
+    addUser: {
+      type: UserType,
+      args: {
+        nom: { type: GraphQLString },
+        prenom: { type: GraphQLString },
+        username: { type: GraphQLString },
+        googleId: { type: GraphQLString },
+        password: { type: GraphQLString },
+        email: { type: GraphQLString },
+        role: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        const newUser = new User(args);
+        return newUser.save();
+      },
+    },
     createAnnonce: {
       type: AnnonceType,
       args: {
-        // ... (your existing args for createAnnonce)
       },
       resolve(parent, args) {
-        // ... (your existing resolve logic for createAnnonce)
       },
     },
     updateAnnonce: {
