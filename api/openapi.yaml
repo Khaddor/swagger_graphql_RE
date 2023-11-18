@@ -1,0 +1,409 @@
+openapi: 3.0.3
+info:
+  title: Announces Immobiliers - API
+  description: API for managing real estate advertisements
+  contact:
+    email: noemail@example.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+servers:
+- url: http://localhost:8080
+tags:
+- name: announce
+  description: Operations related to real estate announcements
+- name: user
+  description: Operations related to user management
+paths:
+  /api/annonces:
+    get:
+      tags:
+      - announce
+      summary: Get all announcements
+      description: Get all real estate announcements from the database
+      operationId: getAllAnnounces
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Announce'
+                x-content-type: application/json
+      x-swagger-router-controller: Announce
+  /api/read/{announceId}:
+    get:
+      tags:
+      - announce
+      summary: Get an announcement by ID
+      description: Returns a single real estate announcement
+      operationId: getAnnounceById
+      parameters:
+      - name: announceId
+        in: path
+        description: ID of the announcement to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announce'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Announcement not found
+      x-swagger-router-controller: Announce
+  /api/delete-announcement/{announceId}:
+    delete:
+      tags:
+      - announce
+      summary: Delete an announcement by ID
+      description: Delete an announcement
+      operationId: deleteAnnounce
+      parameters:
+      - name: announceId
+        in: path
+        description: The ID of the announcement to be deleted
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Announcement deleted successfully
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Announcement not found
+      x-swagger-router-controller: Announce
+  /api/create-announcement:
+    post:
+      tags:
+      - announce
+      summary: Create an announcement
+      description: Create a new real estate announcement
+      operationId: addAnnounce
+      requestBody:
+        description: New real estate announcement details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Announce'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announce'
+        "405":
+          description: Invalid input
+      x-swagger-router-controller: Announce
+  /api/edit-announcement/{announceId}:
+    put:
+      tags:
+      - announce
+      summary: Update an announcement by ID
+      description: Update an existing real estate announcement
+      operationId: updateAnnounce
+      parameters:
+      - name: announceId
+        in: path
+        description: ID of the announcement to be updated
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Updated real estate announcement details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Announce'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announce'
+        "405":
+          description: Invalid input
+      x-swagger-router-controller: Announce
+  /api/login:
+    post:
+      tags:
+      - user
+      summary: User login
+      description: Log in a user and receive a JWT token
+      operationId: userLogin
+      requestBody:
+        description: User login details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api_login_body'
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "401":
+          description: Unauthorized
+      x-swagger-router-controller: User
+  /api/signup:
+    post:
+      tags:
+      - user
+      summary: User sign-up
+      description: Register a new user and receive a JWT token
+      operationId: userSignup
+      requestBody:
+        description: User registration details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api_signup_body'
+      responses:
+        "200":
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "401":
+          description: Unauthorized
+      x-swagger-router-controller: User
+  /api/logout:
+    get:
+      tags:
+      - user
+      summary: User logout
+      description: Log out a user
+      operationId: userLogout
+      responses:
+        "200":
+          description: Successful logout
+        "401":
+          description: Unauthorized
+      x-swagger-router-controller: User
+components:
+  schemas:
+    Announce:
+      required:
+      - description
+      - prix
+      - statut
+      - titre
+      - type
+      type: object
+      properties:
+        titre:
+          type: string
+          example: abklannouncement
+        type:
+          type: string
+          enum:
+          - location
+          - vente
+        publication:
+          type: boolean
+          example: false
+        statut:
+          type: string
+          enum:
+          - disponible
+          - sold
+          - rented
+        description:
+          type: string
+        prix:
+          type: integer
+        photos:
+          type: array
+          example:
+          - photo1.jpg
+          - photo2.jpg
+          items:
+            type: string
+        date:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+      example:
+        date: date
+        prix: 0
+        titre: abklannouncement
+        publication: false
+        questions:
+        - date: date
+          answers:
+          - date: date
+            text: text
+            username: username
+          - date: date
+            text: text
+            username: username
+          text: text
+          username: username
+        - date: date
+          answers:
+          - date: date
+            text: text
+            username: username
+          - date: date
+            text: text
+            username: username
+          text: text
+          username: username
+        description: description
+        type: location
+        photos:
+        - photo1.jpg
+        - photo2.jpg
+        statut: disponible
+      xml:
+        name: announce
+    Question:
+      properties:
+        text:
+          type: string
+        username:
+          type: string
+        date:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
+      example:
+        date: date
+        answers:
+        - date: date
+          text: text
+          username: username
+        - date: date
+          text: text
+          username: username
+        text: text
+        username: username
+    Answer:
+      properties:
+        text:
+          type: string
+        username:
+          type: string
+        date:
+          type: string
+      example:
+        date: date
+        text: text
+        username: username
+    User:
+      type: object
+      properties:
+        nom:
+          type: string
+        prenom:
+          type: string
+        username:
+          type: string
+        googleId:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          default: user
+          enum:
+          - admin
+          - user
+      example:
+        googleId: googleId
+        password: password
+        role: user
+        nom: nom
+        prenom: prenom
+        email: email
+        username: username
+      xml:
+        name: user
+    api_login_body:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          example: user123
+        password:
+          type: string
+          example: password123
+    inline_response_200:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+      example:
+        user:
+          googleId: googleId
+          password: password
+          role: user
+          nom: nom
+          prenom: prenom
+          email: email
+          username: username
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    api_signup_body:
+      required:
+      - email
+      - password
+      - role
+      - username
+      type: object
+      properties:
+        nom:
+          type: string
+        prenom:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          default: user
+          enum:
+          - admin
+          - user
+  securitySchemes:
+    JWT:
+      type: apiKey
+      description: Use JWT token for authentication
+      name: Authorization
+      in: header
