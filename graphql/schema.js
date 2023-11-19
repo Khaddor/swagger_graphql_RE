@@ -139,8 +139,6 @@ const Mutation = new GraphQLObjectType({
       },
     },
 
-
-
     addUser: {
       type: UserType,
       args: {
@@ -171,52 +169,75 @@ const Mutation = new GraphQLObjectType({
         return newUser.save();
       },
     },
-    createAnnonce: {
-      type: AnnonceType,
-      args: {
-      },
-      resolve(parent, args) {
-      },
-    },
-    updateAnnonce: {
-      type: AnnonceType,
-      args: {
-        id: { type: GraphQLID },
-        titre: { type: GraphQLString },
-        type: { type: GraphQLString },
-        publication: { type: GraphQLBoolean },
-        statut: { type: GraphQLString },
-        description: { type: GraphQLString },
-        prix: { type: GraphQLInt },
-        photos: { type: new GraphQLList(GraphQLString) },
-      },
-      resolve(parent, args) {
-        return Annonce.findByIdAndUpdate(args.id, {
-          $set: {
-            titre: args.titre,
-            type: args.type,
-            publication: args.publication,
-            statut: args.statut,
-            description: args.description,
-            prix: args.prix,
-            photos: args.photos,
-          },
-        }, { new: true });
-      },
-    },
-    deleteAnnonce: {
-      type: AnnonceType,
-      args: {
-        id: { type: GraphQLID },
-      },
-      resolve(parent, args) {
-        return Annonce.findByIdAndRemove(args.id);
-      },
-    },
-  },
-});
 
-module.exports = new GraphQLSchema({
-  query: RootQuery,
-  mutation: Mutation,
-});
+        createAnnonce: {
+          type: AnnonceType,
+          args: {
+            titre: { type: new GraphQLNonNull(GraphQLString) },
+            type: { type: new GraphQLNonNull(GraphQLString) },
+            statut: { type: new GraphQLNonNull(GraphQLString) },
+            description: { type: new GraphQLNonNull(GraphQLString) },
+            prix: { type: new GraphQLNonNull(GraphQLInt) },
+            photos: { type: new GraphQLList(GraphQLString) },
+          },
+          resolve(parent, args) {
+            const newAnnonce = new Annonce({
+              titre: args.titre,
+              type: args.type,
+              statut: args.statut,
+              description: args.description,
+              prix: args.prix,
+              photos: args.photos,
+            });
+            return newAnnonce.save();
+          },
+        },
+
+        updateAnnonce: {
+          type: AnnonceType,
+          args: {
+            id: { type: new GraphQLNonNull(GraphQLID) },
+            titre: { type: GraphQLString },
+            type: { type: GraphQLString },
+            statut: { type: GraphQLString },
+            description: { type: GraphQLString },
+            prix: { type: GraphQLInt },
+            photos: { type: new GraphQLList(GraphQLString) },
+          },
+          async resolve(parent, args) {
+            const updatedAnnonce = await Annonce.findByIdAndUpdate(
+                args.id,
+                {
+                  $set: {
+                    titre: args.titre,
+                    type: args.type,
+                    statut: args.statut,
+                    description: args.description,
+                    prix: args.prix,
+                    photos: args.photos,
+                  },
+                },
+                { new: true }
+            );
+            return updatedAnnonce;
+          },
+        },
+
+        deleteAnnonce: {
+          type: AnnonceType,
+          args: {
+            id: { type: new GraphQLNonNull(GraphQLID) },
+          },
+          async resolve(parent, args) {
+            const deletedAnnonce = await Annonce.findByIdAndDelete(args.id);
+            return deletedAnnonce;
+          },
+        },
+      },
+    });
+
+    module.exports = new GraphQLSchema({
+      query: RootQuery,
+      mutation: Mutation,
+    });
+
