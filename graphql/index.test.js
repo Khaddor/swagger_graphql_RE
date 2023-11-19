@@ -5,6 +5,7 @@ const expect = chai.expect;
 
 const serverUrl = 'http://localhost:3001/graphql';
 const invalidUserId = '651c27b51653f141d0821458';
+const invalidAnnonceId="651ec7440f63bb495e78889f"
 let annonceToDelete = null;
 let annonceToUpdate = null;
 
@@ -167,9 +168,91 @@ describe("GraphQL Queries and Mutations", () => {
         });
     });
 
+    it('should get a list of annonces', async () => {
+        const query = `
+                query {
+                    getAnnonces {
+                        id
+                        titre
+                        type
+                        statut
+                    }
+                }
+            `;
+
+        try {
+            const response = await graphqlRequest(serverUrl, query);
+
+            expect(response).to.have.property('getAnnonces');
+            expect(response.getAnnonces).to.be.an('array');
+
+            if (response.getAnnonces.length > 0) {
+                const firstAnnonce = response.getAnnonces[0];
+                expect(firstAnnonce).to.have.property('id');
+                expect(firstAnnonce).to.have.property('titre');
+                expect(firstAnnonce).to.have.property('type');
+                expect(firstAnnonce).to.have.property('statut');
+            }
+
+        } catch (error) {
+            console.error('Error during GraphQL request:', error);
+            throw error;
+        }
+    });
+
+    it('should get a specific annonce by ID', async () => {
+        // Assuming the annonce ID is available in the database
+        const annonceId = '651ec7440f63bb495e78889e';
+
+        const query = `
+                query {
+                    getAnnonce(id: "${annonceId}") {
+                        id
+                        titre
+                        type
+                        statut
+                    }
+                }
+            `;
+
+        try {
+            const response = await graphqlRequest(serverUrl, query);
+
+            expect(response).to.have.property('getAnnonce');
+            expect(response.getAnnonce).to.have.property('id', annonceId);
+            expect(response.getAnnonce).to.have.property('titre','op');
+            expect(response.getAnnonce).to.have.property('type','location');
+            expect(response.getAnnonce).to.have.property('statut','disponible');
+
+        } catch (error) {
+            console.error('Error during GraphQL request:', error);
+            throw error;
+        }
+    });
+
+    it('should not get a specific annonce with invalid id', async () => {
+        const query = `
+                query {
+                    getAnnonce(id: "${invalidAnnonceId}") {
+                        id
+                        titre
+                        type
+                        statut
+                    }
+                }
+            `;
+
+        try {
+            const response = await graphqlRequest(serverUrl, query);
+            expect(response).to.have.property('getAnnonce').that.is.null;
+        } catch (error) {
+            console.error('Error during GraphQL request:', error);
+            throw error;
+        }
+    });
 });
 
-describe('Mutations', () => {
+describe('Auth Mutations', () => {
     describe('userLogin', () => {
         it('should log in a user and return a token', async () => {
             const mutation = `
