@@ -168,3 +168,65 @@ describe("GraphQL Queries and Mutations", () => {
     });
 
 });
+
+describe('Mutations', () => {
+    describe('userLogin', () => {
+        it('should log in a user and return a token', async () => {
+            const mutation = `
+                mutation {
+                    userLogin(email: "abkl@gmail.com", password: "abkl") {
+                        user {
+                            id
+                            username
+                        }
+                        token
+                    }
+                }
+            `;
+
+            try {
+                const response = await graphqlRequest(serverUrl, mutation);
+
+                expect(response).to.have.property('userLogin');
+                expect(response.userLogin).to.have.property('user');
+                expect(response.userLogin.user).to.have.property('id');
+                expect(response.userLogin.user).to.have.property('username');
+                expect(response.userLogin).to.have.property('token');
+            } catch (error) {
+                console.error('Error during GraphQL request:', error);
+                throw error;
+            }
+        });
+
+        describe('addUser', () => {
+            it('should create a new user', async () => {
+                const mutation = `
+                    mutation {
+                        addUser(
+                            nom: "John"
+                            prenom: "Doe"
+                            username: "johndoe"
+                            password: "testpassword"
+                            email: "john.doe@example.com"
+                            role: "user"
+                        ) {
+                            id
+                            username
+                        }
+                    }
+                `;
+
+                try {
+                    const response = await graphqlRequest(serverUrl, mutation);
+
+                    expect(response).to.have.property('addUser');
+                    expect(response.addUser).to.have.property('id');
+                    expect(response.addUser).to.have.property('username', 'johndoe');
+                } catch (error) {
+                    console.error('Error during GraphQL request:', error);
+                    throw error;
+                }
+            });
+        });
+    });
+});
