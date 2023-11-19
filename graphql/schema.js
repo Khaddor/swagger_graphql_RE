@@ -1,8 +1,10 @@
 // graphql/schema.js
 
-const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLID, GraphQLBoolean, GraphQLInt, GraphQLList } = require('graphql');
+const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLID, GraphQLBoolean, GraphQLInt,GraphQLNonNull, GraphQLList } = require('graphql');
 const Annonce = require('../models/annonces');
 const User = require('../models/user-models');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt'); // Add bcrypt for password hashing
 
 const UserType = new GraphQLObjectType({
   name: 'User',
@@ -98,6 +100,47 @@ const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
 
+    userLogin: {
+      type: new GraphQLObjectType({
+        name: 'UserLogin',
+        fields: {
+          user: { type: UserType },
+          token: { type: GraphQLString },
+        },
+      }),
+      args: {
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      async resolve(parent, args) {
+        try {
+          // Find the user by email
+          const user = await User.findOne({ email: args.email });
+
+          if (!user) {
+            throw new Error('Invalid email or password');
+          }
+
+          // Compare the provided password with the stored hashed password
+          const passwordsMatch = await bcrypt.compare(args.password, user.password);
+
+          if (!passwordsMatch) {
+            throw new Error('Invalid email or password');
+          }
+
+          // User authenticated, generate JWT token
+          const token = jwt.sign({ userId: user._id }, 'yourSecretKey', { expiresIn: '1h' });
+
+          // Return the user and token in the response
+          return { user, token };
+        } catch (error) {
+          throw error;
+        }
+      },
+    },
+
+
+
     addUser: {
       type: UserType,
       args: {
@@ -109,8 +152,22 @@ const Mutation = new GraphQLObjectType({
         email: { type: GraphQLString },
         role: { type: GraphQLString },
       },
-      resolve(parent, args) {
-        const newUser = new User(args);
+      async resolve(parent, args) {
+        // Hash the password before saving it to the database
+        const hashedPassword = await bcrypt.hash(args.password, 10);
+
+        // Create a new user instance with the hashed password
+        const newUser = new User({
+          nom: args.nom,
+          prenom: args.prenom,
+          username: args.username,
+          googleId: args.googleId,
+          password: hashedPassword, // Store the hashed password
+          email: args.email,
+          role: args.role,
+        });
+
+        // Save the user to the database
         return newUser.save();
       },
     },
